@@ -339,7 +339,7 @@ if (file.exists(files$vendor)) {
     is_total <- !is.na(vendor_raw[[1]]) & grepl("^Total for ", vendor_raw[[1]])
     vendor_data <- data.frame(
       vendor = gsub("^Total for ", "", vendor_raw[[1]][is_total]),
-      amount = suppressWarnings(as.numeric(vendor_raw[[9]][is_total])),
+      amount = suppressWarnings(as.numeric(vendor_raw[[10]][is_total])),
       stringsAsFactors = FALSE
     ) |>
       dplyr::filter(!is.na(amount) & amount > 0) |>
@@ -355,7 +355,7 @@ if (file.exists(files$vendor)) {
 txlist_monthly <- NULL
 if (file.exists(files$txlist)) {
   txlist_raw <- tryCatch(
-    read_excel(files$txlist, skip = 4, col_names = TRUE),
+    read_excel(files$txlist, skip = 3, col_names = TRUE),
     error = function(e) { message("TxList error: ", e$message); NULL }
   )
   if (!is.null(txlist_raw) && ncol(txlist_raw) >= 9) {
@@ -494,7 +494,7 @@ if (!is.null(pl_table)) {
 # ---- Transaction List: Purchase Orders coded to COGS (50xxx split) ----
 if (file.exists(files$txlist)) {
   tx_full <- tryCatch(
-    read_excel(files$txlist, skip = 4, col_names = TRUE),
+    read_excel(files$txlist, skip = 3, col_names = TRUE),
     error = function(e) NULL
   )
   if (!is.null(tx_full) && ncol(tx_full) >= 9) {
@@ -541,7 +541,7 @@ if (file.exists(files$txlist)) {
 # ---- Logistics vendors ----
 if (!is.null(vendor_data)) {
   logistics_vendors <- vendor_data[
-    grepl("ship|freight|ups|usps|fedex|dhl|auctane|dimerco|express|postal|carrier|shipstation",
+    grepl("ship|freight|ups|usps|fedex|dhl|auctane|dimerco|express|postal|carrier",
           vendor_data$vendor, ignore.case = TRUE) &
     vendor_data$amount > 0, ]
   logistics_vendors <- logistics_vendors[order(-logistics_vendors$amount), ]

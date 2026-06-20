@@ -1,400 +1,505 @@
 /* ============================================================
-   DrPawluk Finance Dashboard — Light Theme
+   DrPawluk Finances — bs4Dash Theme
+   Palette: Deep Indigo + Light Sky Blue
+   Font: Source Sans Pro + system-ui fallback
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;1,400&display=swap');
 
+/* ============================================================
+   CSS VARIABLES
+   ============================================================ */
 :root {
-  --bg-main:    #F4F6F9;
-  --bg-content: #F4F6F9;
-  --bg-card:    #FFFFFF;
-  --bg-sidebar: #1C2331;
-  --bg-sidebar2:#243044;
-  --border:     #DEE2E6;
-  --text:       #1A1A2E;
-  --text2:      #6C757D;
-  --green:      #00A878;
-  --red:        #E03131;
-  --yellow:     #E67700;
-  --blue:       #1971C2;
-  --font-mono:  'IBM Plex Mono', 'Roboto Mono', monospace;
+  --indigo:        #4B4F8F;
+  --indigo-dark:   #383C72;
+  --indigo-deeper: #2C2F5B;
+  --sky:           #9BC3E6;
+  --sky-light:     #EAF3FB;
+  --sky-pale:      #F4F8FD;
+  --green:         #1D6F42;
+  --green-dark:    #217346;
+  --text-main:     #1F2937;
+  --text-muted:    #6B7280;
+  --border:        #D6E6F5;
+  --bg:            #F4F8FD;
+  --white:         #ffffff;
 }
 
-/* ---- Base ---- */
-body, html {
-  font-family: var(--font-mono) !important;
-  background:  var(--bg-main)  !important;
-  color:       var(--text)     !important;
+/* ============================================================
+   PAGE BACKGROUND
+   ============================================================ */
+body, .content-wrapper, .content, .wrapper {
+  background-color: var(--bg) !important;
+  font-family: 'Source Sans Pro', 'Segoe UI', system-ui, -apple-system, sans-serif !important;
 }
 
-.wrapper,
-.content-wrapper {
-  background: var(--bg-content) !important;
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.main-sidebar, .main-sidebar .brand-link {
+  background: linear-gradient(180deg, var(--indigo) 0%, var(--indigo-deeper) 100%) !important;
+  color: var(--white) !important;
 }
-
-/* ---- Navbar ---- */
-.main-header .navbar,
-.navbar.navbar-white,
-.navbar.navbar-light {
-  background:   #FFFFFF !important;
-  border-bottom: 1px solid var(--border) !important;
-  box-shadow:   0 1px 4px rgba(0,0,0,.08) !important;
+.main-sidebar .brand-link {
+  border-bottom: 1px solid rgba(155,195,230,0.25) !important;
 }
-
-.navbar-brand-text,
 .brand-text {
-  color: var(--text) !important;
+  color: var(--white) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
 }
-
-/* ---- Sidebar ---- */
-.main-sidebar,
-.sidebar {
-  background: var(--bg-sidebar) !important;
+.sidebar-toggle, .sidebar-toggle:hover {
+  color: var(--white) !important;
 }
+.nav-sidebar .nav-link,
+.nav-sidebar .nav-link i {
+  color: rgba(255,255,255,0.78) !important;
+  font-size: 0.88rem;
+  transition: background 0.18s, color 0.18s;
+}
+.nav-sidebar .nav-link:hover {
+  background-color: rgba(155,195,230,0.18) !important;
+  color: var(--white) !important;
+}
+.nav-sidebar .nav-link:hover i { color: var(--sky) !important; }
+.nav-sidebar .nav-link.active {
+  background-color: rgba(155,195,230,0.22) !important;
+  color: var(--white) !important;
+  font-weight: 600 !important;
+  border-radius: 6px;
+  border-left: 3px solid var(--sky) !important;
+}
+.nav-sidebar .nav-link.active i { color: var(--sky) !important; }
 
-.sidebar .nav-sidebar > .nav-item > .nav-link {
-  color:          rgba(255,255,255,.7) !important;
-  font-size:      12px;
-  letter-spacing: 0.07em;
+/* Store switcher in sidebar */
+.sidebar-store-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
-  padding:        9px 14px;
-  border-radius:  4px;
-  margin:         2px 8px;
-  transition:     background .15s, color .15s;
+  letter-spacing: 0.08em;
+  padding: 12px 16px 4px;
+  display: block;
+}
+.sidebar-store-wrap {
+  padding: 0 12px 8px;
+}
+.sidebar-store-wrap .form-group { margin-bottom: 0; }
+.sidebar-store-wrap select,
+.sidebar-store-wrap .selectize-input {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(155,195,230,0.45) !important;
+  color: #ffffff !important;
+  border-radius: 7px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+}
+.sidebar-store-wrap .selectize-dropdown {
+  background: var(--indigo-deeper) !important;
+  border: 1px solid rgba(155,195,230,0.4) !important;
+  color: #ffffff !important;
+}
+.sidebar-store-wrap .selectize-dropdown .option:hover,
+.sidebar-store-wrap .selectize-dropdown .option.active {
+  background: rgba(155,195,230,0.2) !important;
 }
 
-.sidebar .nav-sidebar > .nav-item > .nav-link:hover {
-  background: var(--bg-sidebar2) !important;
-  color:      #FFFFFF !important;
-}
-
-.sidebar .nav-sidebar > .nav-item > .nav-link.active,
-.sidebar .nav-sidebar > .nav-item.menu-open > .nav-link {
-  background:   var(--bg-sidebar2) !important;
-  color:        #FFFFFF !important;
-  border-left:  3px solid var(--green);
-}
-
-.sidebar .nav-sidebar .nav-icon {
-  color: rgba(255,255,255,.6) !important;
-}
-
-/* sidebar checkbox / date labels */
+/* Sidebar form labels & inputs (date range, checkboxes) */
 .main-sidebar .form-check-label,
 .main-sidebar label,
 .main-sidebar p {
-  color: rgba(255,255,255,.75) !important;
+  color: rgba(255,255,255,0.75) !important;
 }
-
 .main-sidebar .form-control,
 .main-sidebar input[type="text"],
 .main-sidebar input[type="date"] {
-  background: var(--bg-sidebar2) !important;
-  border:     1px solid rgba(255,255,255,.15) !important;
-  color:      #FFFFFF !important;
-  font-size:  12px !important;
-}
-
-.main-sidebar hr {
-  border-color: rgba(255,255,255,.12) !important;
-}
-
-/* ---- Cards / Boxes ---- */
-.card, .box {
-  background:    var(--bg-card)  !important;
-  border:        1px solid var(--border) !important;
-  border-radius: 8px !important;
-  box-shadow:    0 1px 6px rgba(0,0,0,.06) !important;
-  overflow:      hidden !important;
-}
-
-.card-header, .box-header {
-  background:    var(--bg-card) !important;
-  border-bottom: 1px solid var(--border) !important;
-  padding:       12px 16px !important;
-}
-
-.card-body, .box-body {
-  background: var(--bg-card) !important;
-  color:      var(--text)    !important;
-  overflow:   hidden !important;
-}
-
-/* ---- Chart title ---- */
-.ct {
-  font-size:      11px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color:          var(--text2);
-  font-weight:    600;
-}
-
-/* ---- Value Boxes ---- */
-.small-box, .value-box {
-  border-radius: 8px  !important;
-  border:        1px solid var(--border) !important;
-  box-shadow:    0 1px 6px rgba(0,0,0,.06) !important;
-  overflow:      hidden;
-}
-
-.small-box .inner { padding: 14px 16px 10px !important; }
-
-.small-box h3 {
-  font-size:   22px !important;
-  font-weight: 600 !important;
-}
-
-.small-box p {
-  font-size:      11px !important;
-  letter-spacing: 0.09em !important;
-  text-transform: uppercase !important;
-}
-
-/* Color overrides for light theme */
-.bg-success { background: #F0FBF7 !important; border-left: 4px solid var(--green)  !important; }
-.bg-danger   { background: #FFF5F5 !important; border-left: 4px solid var(--red)    !important; }
-.bg-info     { background: #EFF6FF !important; border-left: 4px solid var(--blue)   !important; }
-.bg-warning  { background: #FFF8EC !important; border-left: 4px solid var(--yellow) !important; }
-
-.bg-success .inner h3,
-.bg-success .inner p { color: var(--text) !important; }
-.bg-danger   .inner h3,
-.bg-danger   .inner p { color: var(--text) !important; }
-.bg-info     .inner h3,
-.bg-info     .inner p { color: var(--text) !important; }
-.bg-warning  .inner h3,
-.bg-warning  .inner p { color: var(--text) !important; }
-
-.small-box.bg-success .icon i { color: var(--green)  !important; opacity: .35; }
-.small-box.bg-danger  .icon i { color: var(--red)    !important; opacity: .35; }
-.small-box.bg-info    .icon i { color: var(--blue)   !important; opacity: .35; }
-.small-box.bg-warning .icon i { color: var(--yellow) !important; opacity: .35; }
-
-.small-box .icon { font-size: 60px !important; top: 10px !important; }
-
-/* KPI typography */
-.kpi-value {
-  font-family:    var(--font-mono);
-  font-size:      20px;
-  font-weight:    600;
-  color:          var(--text);
-  letter-spacing: -0.02em;
-}
-.kpi-label {
-  font-size:      10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color:          var(--text2);
-}
-.kpi-footer {
-  font-size: 10px;
-  color:     var(--text2);
-}
-
-/* ---- Inputs (main content area) ---- */
-.form-control,
-.shiny-input-container input:not([type=checkbox]),
-.shiny-input-container select {
-  background:    #FFFFFF !important;
-  border:        1px solid var(--border) !important;
-  color:         var(--text) !important;
-  border-radius: 4px !important;
-  font-family:   var(--font-mono) !important;
-  font-size:     12px !important;
-}
-
-.form-control:focus {
-  border-color: var(--blue) !important;
-  box-shadow:   0 0 0 2px rgba(25,113,194,.15) !important;
-}
-
-.checkbox label,
-.shiny-input-container label,
-.control-label {
-  color:     var(--text2) !important;
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(155,195,230,0.35) !important;
+  color: #ffffff !important;
   font-size: 12px !important;
 }
-
-/* ---- DataTables ---- */
-table.dataTable, .dataTables_wrapper {
-  font-family: var(--font-mono) !important;
-  font-size:   12px !important;
-  color:       var(--text) !important;
+.main-sidebar hr {
+  border-color: rgba(155,195,230,0.2) !important;
 }
 
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.main-header.navbar {
+  background: linear-gradient(90deg, var(--indigo) 0%, var(--indigo-dark) 60%, #5A6AAF 100%) !important;
+  border-bottom: 2px solid var(--sky) !important;
+}
+.main-header .navbar-nav .nav-link { color: var(--white) !important; }
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(75,79,143,0.06), 0 8px 20px rgba(75,79,143,0.09) !important;
+  margin-bottom: 1.2rem;
+  background: var(--white) !important;
+}
+.card-primary > .card-header {
+  background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 60%, #5C6BAF 100%) !important;
+  color: var(--white) !important;
+  border-radius: 9px 9px 0 0 !important;
+  padding: 0.75rem 1.1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid var(--sky) !important;
+}
+.card-primary > .card-header .card-title { color: var(--white) !important; }
+.card-body { padding: 1rem 1.1rem; }
+
+/* Also target bs4Dash box headers for non-primary cards */
+.box-header {
+  background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 60%, #5C6BAF 100%) !important;
+  color: var(--white) !important;
+  border-radius: 9px 9px 0 0 !important;
+  padding: 0.75rem 1.1rem !important;
+  border-bottom: 2px solid var(--sky) !important;
+}
+.box-header .box-title { color: var(--white) !important; font-weight: 600 !important; }
+.box-body { background: var(--white) !important; }
+
+/* Chart title span inside card headers */
+.ct {
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--white);
+  font-weight: 600;
+}
+
+/* ============================================================
+   KPI BOXES
+   ============================================================ */
+.ss-kpi-row { margin-left: -8px; margin-right: -8px; margin-bottom: 1.4rem; }
+.ss-kpi-row .col-sm-3 { padding-left: 8px; padding-right: 8px; }
+.ss-kpi-box {
+  background: var(--white);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(75,79,143,0.08), 0 1px 2px rgba(75,79,143,0.04);
+  padding: 18px 20px 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 90px;
+  transition: box-shadow 0.18s, transform 0.18s;
+  margin-bottom: 0;
+}
+.ss-kpi-box:hover {
+  box-shadow: 0 6px 22px rgba(75,79,143,0.17);
+  transform: translateY(-2px);
+}
+.ss-kpi-icon {
+  width: 50px; height: 50px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; flex-shrink: 0;
+}
+.ss-kpi-content { flex: 1; min-width: 0; }
+.ss-kpi-value {
+  font-size: 1.85rem; font-weight: 700;
+  color: var(--text-main); line-height: 1.1; letter-spacing: -0.02em;
+}
+.ss-kpi-label {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ss-kpi-box .form-group { margin-bottom: 0; }
+.ss-kpi-box .selectize-input { font-size: 0.85rem; padding: 5px 8px; min-height: unset; }
+
+/* ============================================================
+   DT TABLES
+   ============================================================ */
+.dataTables_scrollHead  { overflow: hidden !important; }
+.dataTables_scrollBody  { overflow-x: auto !important; overflow-y: auto !important; }
+div.dataTables_wrapper div.dataTables_scroll div.dataTables_scrollBody table,
+div.dataTables_wrapper div.dataTables_scroll div.dataTables_scrollHead table {
+  min-width: max-content; width: 100% !important;
+}
+table.dataTable { border-collapse: collapse !important; table-layout: auto !important; }
+table.dataTable td, table.dataTable th {
+  white-space: nowrap !important; vertical-align: middle !important;
+  padding: 7px 14px !important; text-align: left !important;
+  box-sizing: border-box;
+}
 table.dataTable thead th {
-  background:     #F8F9FA !important;
-  color:          var(--text2) !important;
-  border-bottom:  2px solid var(--border) !important;
-  font-size:      10px !important;
-  letter-spacing: 0.07em !important;
-  text-transform: uppercase !important;
-  white-space:    nowrap;
+  background-color: var(--sky-light) !important;
+  color: var(--indigo) !important;
+  font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border-bottom: 2px solid var(--sky) !important;
 }
+table.dataTable tbody tr:hover > td { background-color: var(--sky-light) !important; }
+table.dataTable tbody tr:nth-child(even) > td { background-color: var(--sky-pale) !important; }
 
-table.dataTable tbody tr         { background: #FFFFFF !important; }
-table.dataTable tbody tr.even    { background: #F8F9FA !important; }
-table.dataTable tbody tr.odd     { background: #FFFFFF !important; }
-table.dataTable tbody tr:hover   { background: #EFF6FF !important; }
-
-table.dataTable tbody td {
-  border-top: 1px solid var(--border) !important;
-  color:      var(--text) !important;
-  padding:    6px 10px  !important;
+/* Length selector */
+.dataTables_wrapper .dataTables_length label {
+  color: var(--indigo) !important; font-weight: 500; font-size: 0.83rem;
 }
-
-.dataTables_wrapper .dataTables_filter input {
-  background:    #FFFFFF !important;
-  border:        1px solid var(--border) !important;
-  color:         var(--text) !important;
-  border-radius: 4px;
-  padding:       3px 8px;
+.dataTables_wrapper .dataTables_length select {
+  border: 1px solid var(--sky) !important; border-radius: 5px;
+  padding: 2px 6px; color: var(--indigo); font-weight: 600; background: var(--white);
 }
-
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_length label,
-.dataTables_wrapper .dataTables_filter label {
-  color:     var(--text2) !important;
-  font-size: 11px !important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-  color:         var(--text2) !important;
-  background:    #FFFFFF !important;
-  border:        1px solid var(--border) !important;
-  border-radius: 4px !important;
-  font-size:     12px !important;
-}
-
+/* Pagination */
 .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: var(--indigo) !important; color: var(--white) !important;
+  border-radius: 4px; border: none !important;
+}
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-  background:   var(--blue)   !important;
-  color:        #FFFFFF       !important;
-  border-color: var(--blue)   !important;
+  background: var(--sky-light) !important; color: var(--indigo) !important;
+  border: none !important; border-radius: 4px;
+}
+/* Filter */
+.dataTables_wrapper .dataTables_filter label {
+  color: var(--indigo) !important; font-weight: 500; font-size: 0.83rem;
+}
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid var(--sky) !important; border-radius: 5px;
+  padding: 3px 8px; outline: none; background: var(--white);
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+  border-color: var(--indigo) !important;
+  box-shadow: 0 0 0 2px rgba(75,79,143,0.15);
+}
+.dataTables_wrapper .dataTables_info {
+  color: var(--text-muted) !important; font-size: 0.82rem;
 }
 
-.dataTables_wrapper thead input {
-  background:    #FFFFFF !important;
-  border:        1px solid var(--border) !important;
-  color:         var(--text) !important;
-  border-radius: 3px;
-  font-size:     11px !important;
+/* ============================================================
+   REFRESH BUTTON (inside card header)
+   ============================================================ */
+.refresh-btn {
+  background: rgba(155,195,230,0.18) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(155,195,230,0.55) !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 4px 10px !important;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, transform 0.15s;
+}
+.refresh-btn:hover {
+  background: rgba(155,195,230,0.38) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+.refresh-btn i { margin-right: 4px; }
+
+/* ============================================================
+   LOGOUT BUTTON IN NAVBAR
+   ============================================================ */
+#logout_btn {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.35) !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 4px 12px !important;
+  transition: background 0.15s;
+}
+#logout_btn:hover {
+  background: rgba(255,255,255,0.28) !important;
 }
 
-/* ---- Apply Filters Button (sidebar) ---- */
+/* ============================================================
+   LOGIN PANEL INPUT OVERRIDES
+   ============================================================ */
+#login_user, #login_pass {
+  border: 1px solid #D6E6F5 !important;
+  border-radius: 7px !important;
+  padding: 8px 12px !important;
+  font-size: 0.9rem !important;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+#login_user:focus, #login_pass:focus {
+  border-color: #4B4F8F !important;
+  box-shadow: 0 0 0 3px rgba(75,79,143,0.15) !important;
+  outline: none !important;
+}
+
+/* Login button */
+.btn-login {
+  background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 7px !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  padding: 9px 0 !important;
+  width: 100% !important;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(75,79,143,0.35);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.btn-login:hover {
+  opacity: 0.9 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   LOADING TOASTS (bottom-right notifications)
+   ============================================================ */
+#shiny-notification-panel {
+  width: 310px;
+  bottom: 24px !important;
+  right:  24px !important;
+  top:    auto !important;
+  left:   auto !important;
+  position: fixed;
+  z-index: 9999;
+}
+.shiny-notification {
+  background: var(--indigo-deeper) !important;
+  color: var(--white) !important;
+  border: 1px solid rgba(155,195,230,0.35) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 24px rgba(44,47,91,0.45) !important;
+  font-size: 0.85rem !important;
+  padding: 12px 16px !important;
+  margin-bottom: 8px;
+}
+.shiny-notification.shiny-notification-message {
+  border-left: 4px solid var(--sky) !important;
+}
+.shiny-notification-close { display: none !important; }
+
+/* ============================================================
+   SIDEBAR DATE PICKER
+   ============================================================ */
+.sidebar-date-section {
+  border-top: 1px solid rgba(155,195,230,0.2);
+  margin-top: 6px;
+}
+.sidebar-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 8px;
+}
+.sidebar-date-section label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 3px;
+  display: block;
+}
+.sidebar-date-section .form-control {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(155,195,230,0.45) !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-size: 0.82rem !important;
+  padding: 5px 8px !important;
+  margin-bottom: 8px;
+}
+.sidebar-date-section .form-control:focus {
+  border-color: rgba(155,195,230,0.85) !important;
+  box-shadow: 0 0 0 2px rgba(155,195,230,0.2) !important;
+  outline: none !important;
+}
+.btn-apply-dates,
 .btn-apply {
-  background:     #00A878  !important;
-  color:          #FFFFFF  !important;
-  border:         none     !important;
-  border-radius:  5px      !important;
-  font-family:    var(--font-mono) !important;
-  font-size:      11px     !important;
-  font-weight:    600      !important;
-  letter-spacing: 0.08em   !important;
-  text-transform: uppercase !important;
-  padding:        7px 0    !important;
-  width:          100%     !important;
-  transition:     background .15s, opacity .15s;
+  background: linear-gradient(135deg, #10B981, #059669) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 7px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  padding: 7px 0 !important;
+  width: 100% !important;
+  margin-top: 2px !important;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.4);
+  transition: opacity 0.15s, transform 0.15s;
 }
-.btn-apply:hover,
-.btn-apply:focus {
-  background: #008f65 !important;
-  color:      #FFFFFF !important;
-  outline:    none;
+.btn-apply-dates:hover,
+.btn-apply:hover {
+  opacity: 0.88 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
 }
-.btn-apply .fa { margin-right: 5px; }
+.btn-apply-dates i,
+.btn-apply i { margin-right: 5px; }
 
-/* ---- Export Button ---- */
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.main-footer {
+  border-top: 1px solid var(--border) !important;
+  font-size: 0.8rem; color: var(--text-muted) !important;
+  background: var(--white) !important;
+}
+.text-muted { color: var(--text-muted) !important; }
+
+/* ============================================================
+   DrPawluk-specific extras
+   ============================================================ */
+
+/* CSV export button */
 .btn-export {
-  background:     var(--yellow) !important;
-  color:          #FFFFFF       !important;
-  border:         none          !important;
-  border-radius:  4px           !important;
-  font-family:    var(--font-mono) !important;
-  font-size:      12px          !important;
-  font-weight:    600           !important;
-  letter-spacing: 0.07em        !important;
-  text-transform: uppercase     !important;
-  padding:        6px 16px      !important;
-  height:         36px;
-  transition:     opacity .15s;
+  background: linear-gradient(135deg, #E67700, #D4600A) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  padding: 5px 14px !important;
+  letter-spacing: 0.03em;
+  transition: opacity 0.15s, transform 0.15s;
 }
-.btn-export:hover { opacity: .88; }
+.btn-export:hover { opacity: 0.88 !important; transform: translateY(-1px); }
 
-/* ---- Warning banner ---- */
+/* Warning banner (missing data files) */
 .warn-banner {
-  background:    #FFF8EC;
-  border:        1px solid var(--yellow);
-  border-radius: 6px;
-  color:         var(--yellow);
-  padding:       8px 14px;
+  background: #FFF8EC;
+  border: 1px solid #E67700;
+  border-left: 4px solid #E67700;
+  border-radius: 8px;
+  color: #E67700;
+  padding: 9px 14px;
   margin-bottom: 14px;
-  font-size:     12px;
+  font-size: 0.83rem;
 }
 
-/* ---- Filter bar (Raw Data tab) ---- */
+/* Raw Data filter bar */
 .filter-bar {
-  display:       flex;
-  flex-wrap:     wrap;
-  gap:           12px;
-  align-items:   flex-end;
-  background:    var(--bg-card);
-  border:        1px solid var(--border);
-  border-radius: 8px;
-  padding:       12px 16px;
-  margin-bottom: 14px;
-  box-shadow:    0 1px 4px rgba(0,0,0,.04);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(75,79,143,0.06);
 }
 .filter-item      { flex: 1; min-width: 140px; }
 .filter-wide      { flex: 2; min-width: 200px; }
-.filter-btn       { flex: 0; min-width: 120px; display:flex; align-items:flex-end; }
+.filter-btn       { flex: 0; min-width: 120px; display: flex; align-items: flex-end; }
 .filter-label {
-  display:        block;
-  font-size:      10px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color:          var(--text2);
-  margin-bottom:  3px;
+  display: block; font-size: 0.7rem; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px;
 }
 
-/* ---- Spinner ---- */
+/* Spinner */
 .shiny-spinner-output-container { min-height: 60px; }
 
-/* ---- Footer ---- */
-.main-footer {
-  background:   #FFFFFF         !important;
-  border-top:   1px solid var(--border) !important;
-  color:        var(--text2)    !important;
-  font-size:    11px;
-  font-family:  var(--font-mono)!important;
-}
-
-/* ---- Scrollbars ---- */
+/* Scrollbars */
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
-::-webkit-scrollbar-track  { background: #F4F6F9; }
-::-webkit-scrollbar-thumb  { background: #CED4DA; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #ADB5BD; }
+::-webkit-scrollbar-track  { background: var(--sky-pale); }
+::-webkit-scrollbar-thumb  { background: var(--sky); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--indigo); }
 
-/* ---- Selectize ---- */
-.selectize-dropdown,
-.selectize-input {
-  background:  #FFFFFF !important;
-  border-color: var(--border) !important;
-  color:        var(--text) !important;
-  font-family:  var(--font-mono) !important;
-  font-size:    12px !important;
-}
-.selectize-dropdown-content .option:hover,
-.selectize-dropdown-content .option.selected {
-  background: var(--blue) !important;
-  color:      #FFFFFF !important;
-}
-
-/* ---- Brand ---- */
-.brand-link { background: var(--bg-sidebar) !important; }
-
-/* ---- Content padding ---- */
+/* Content padding */
 .content { padding: 14px 18px; }
-
-/* ---- dt-right alignment ---- */
 .dt-right { text-align: right !important; }

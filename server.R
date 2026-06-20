@@ -60,7 +60,7 @@ server <- function(input, output, session) {
       layout(
         paper_bgcolor = "rgba(0,0,0,0)",
         plot_bgcolor  = "rgba(0,0,0,0)",
-        font      = list(color = "#1A1A2E", family = "'IBM Plex Mono', monospace"),
+        font      = list(color = "#1A1A2E", family = "'Source Sans Pro','Segoe UI',system-ui"),
         xaxis     = list(gridcolor = "#E9ECEF", zerolinecolor = "#CED4DA",
                          tickfont  = list(color = "#6C757D")),
         yaxis     = list(gridcolor = "#E9ECEF", zerolinecolor = "#CED4DA",
@@ -89,52 +89,28 @@ server <- function(input, output, session) {
   # ============================================================
   # TAB 1: KPI VALUE BOXES
   # ============================================================
-  output$kpi_gross_revenue <- renderValueBox({
+  output$kpi_gross_revenue <- renderText({
     rev  <- filtered_revenue()
     sale <- rev[is_refund == FALSE & amount > 0]
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(sum(sale$amount, na.rm = TRUE))),
-      subtitle = tags$span(class = "kpi-label", "GROSS REVENUE"),
-      icon     = icon("dollar-sign"), color = "success",
-      footer   = tags$span(class = "kpi-footer", fmt_number(nrow(sale)), " sales transactions")
-    )
+    fmt_currency(sum(sale$amount, na.rm = TRUE))
   })
 
-  output$kpi_refunds <- renderValueBox({
+  output$kpi_refunds <- renderText({
     rev <- filtered_revenue()
     ref <- rev[is_refund == TRUE]
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(sum(abs(ref$amount), na.rm = TRUE))),
-      subtitle = tags$span(class = "kpi-label", "TOTAL REFUNDS"),
-      icon     = icon("undo"), color = "danger",
-      footer   = tags$span(class = "kpi-footer", fmt_number(nrow(ref)), " refund transactions")
-    )
+    fmt_currency(sum(abs(ref$amount), na.rm = TRUE))
   })
 
-  output$kpi_net_revenue <- renderValueBox({
+  output$kpi_net_revenue <- renderText({
     rev     <- filtered_revenue()
     gross   <- sum(rev[is_refund == FALSE & amount > 0]$amount, na.rm = TRUE)
     refunds <- sum(abs(rev[is_refund == TRUE]$amount), na.rm = TRUE)
-    net     <- gross - refunds
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(net)),
-      subtitle = tags$span(class = "kpi-label", "NET REVENUE"),
-      icon     = icon("chart-line"),
-      color    = if (!is.na(net) && net >= 0) "success" else "danger",
-      footer   = tags$span(class = "kpi-footer",
-                            length(unique(rev$source)), " payment sources")
-    )
+    fmt_currency(gross - refunds)
   })
 
-  output$kpi_tx_count <- renderValueBox({
+  output$kpi_tx_count <- renderText({
     rev <- filtered_revenue()
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_number(nrow(rev))),
-      subtitle = tags$span(class = "kpi-label", "TOTAL TRANSACTIONS"),
-      icon     = icon("exchange-alt"), color = "info",
-      footer   = tags$span(class = "kpi-footer",
-                            paste(sort(unique(rev$source)), collapse = " · "))
-    )
+    fmt_number(nrow(rev))
   })
 
   # ============================================================
@@ -223,29 +199,19 @@ server <- function(input, output, session) {
   # ============================================================
   # TAB 2: VOLUME KPIs
   # ============================================================
-  output$kpi_total_txn <- renderValueBox({
-    n <- nrow(filtered_revenue()[is_refund == FALSE])
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_number(n)),
-      subtitle = tags$span(class = "kpi-label", "SUCCESSFUL TRANSACTIONS"),
-      icon     = icon("check-circle"), color = "success"
-    )
+  output$kpi_total_txn <- renderText({
+    fmt_number(nrow(filtered_revenue()[is_refund == FALSE]))
   })
 
-  output$kpi_failed_txn <- renderValueBox({
+  output$kpi_failed_txn <- renderText({
     req(input$date_range)
     n <- sum(bt_failure_stats[
       !is.na(month) & month >= input$date_range[1] & month <= input$date_range[2]
     ]$N, na.rm = TRUE)
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_number(n)),
-      subtitle = tags$span(class = "kpi-label", "FAILED / DECLINED"),
-      icon     = icon("times-circle"), color = "danger",
-      footer   = tags$span(class = "kpi-footer", "Braintree gateway & processor")
-    )
+    fmt_number(n)
   })
 
-  output$kpi_failure_rate <- renderValueBox({
+  output$kpi_failure_rate <- renderText({
     req(input$date_range)
     failed <- sum(bt_failure_stats[
       !is.na(month) & month >= input$date_range[1] & month <= input$date_range[2]
@@ -253,25 +219,14 @@ server <- function(input, output, session) {
     rev_n  <- nrow(filtered_revenue()[source == "Braintree"])
     total  <- failed + rev_n
     rate   <- if (total > 0) round(failed / total * 100, 1) else 0
-    valueBox(
-      value    = tags$span(class = "kpi-value", paste0(rate, "%")),
-      subtitle = tags$span(class = "kpi-label", "BRAINTREE FAILURE RATE"),
-      icon     = icon("exclamation-triangle"),
-      color    = if (rate > 90) "danger" else "warning",
-      footer   = tags$span(class = "kpi-footer",
-                            fmt_number(failed), " failed of ", fmt_number(total))
-    )
+    paste0(rate, "%")
   })
 
-  output$kpi_avg_value <- renderValueBox({
+  output$kpi_avg_value <- renderText({
     rev  <- filtered_revenue()
     sale <- rev[is_refund == FALSE & amount > 0]
     avg  <- if (nrow(sale) > 0) mean(sale$amount, na.rm = TRUE) else NA
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(avg)),
-      subtitle = tags$span(class = "kpi-label", "AVG TRANSACTION VALUE"),
-      icon     = icon("calculator"), color = "info"
-    )
+    fmt_currency(avg)
   })
 
   # ============================================================
@@ -354,46 +309,10 @@ server <- function(input, output, session) {
   # ============================================================
   # TAB 3: P&L KPIs
   # ============================================================
-  output$kpi_pl_revenue <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(pl_metrics$gross_revenue)),
-      subtitle = tags$span(class = "kpi-label", "GROSS REVENUE"),
-      icon     = icon("dollar-sign"), color = "success",
-      footer   = tags$span(class = "kpi-footer", "QuickBooks · Jan 2025–Jun 2026")
-    )
-  })
-
-  output$kpi_pl_cogs <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(pl_metrics$cogs)),
-      subtitle = tags$span(class = "kpi-label", "COST OF GOODS SOLD"),
-      icon     = icon("boxes"), color = "warning",
-      footer   = tags$span(class = "kpi-footer", "QuickBooks COGS total")
-    )
-  })
-
-  output$kpi_pl_profit <- renderValueBox({
-    gp <- pl_metrics$gross_profit
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(gp)),
-      subtitle = tags$span(class = "kpi-label", "GROSS PROFIT"),
-      icon     = icon("chart-line"),
-      color    = if (!is.na(gp) && gp >= 0) "success" else "danger"
-    )
-  })
-
-  output$kpi_pl_net <- renderValueBox({
-    ni  <- pl_metrics$net_income
-    exp <- pl_metrics$total_expenses
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(ni)),
-      subtitle = tags$span(class = "kpi-label", "NET INCOME"),
-      icon     = icon("balance-scale"),
-      color    = if (!is.na(ni) && ni >= 0) "success" else "danger",
-      footer   = tags$span(class = "kpi-footer",
-                            "Expenses: ", fmt_currency(exp))
-    )
-  })
+  output$kpi_pl_revenue <- renderText({ fmt_currency(pl_metrics$gross_revenue) })
+  output$kpi_pl_cogs    <- renderText({ fmt_currency(pl_metrics$cogs) })
+  output$kpi_pl_profit  <- renderText({ fmt_currency(pl_metrics$gross_profit) })
+  output$kpi_pl_net     <- renderText({ fmt_currency(pl_metrics$net_income) })
 
   # ============================================================
   # TAB 3: MONTHLY P&L CHART
@@ -520,41 +439,10 @@ server <- function(input, output, session) {
   # ============================================================
   # TAB 4: COGS & LOGISTICS
   # ============================================================
-  output$kpi_cogs_product <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(cogs_metrics$product_cogs)),
-      subtitle = tags$span(class = "kpi-label", "PRODUCT COGS"),
-      icon     = icon("boxes"), color = "danger",
-      footer   = tags$span(class = "kpi-footer", "Account 50000")
-    )
-  })
-
-  output$kpi_cogs_shipping <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(cogs_metrics$shipping_cost)),
-      subtitle = tags$span(class = "kpi-label", "SHIPPING & FREIGHT"),
-      icon     = icon("truck"), color = "warning",
-      footer   = tags$span(class = "kpi-footer", "Delivery + Freight IN")
-    )
-  })
-
-  output$kpi_cogs_fees <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(cogs_metrics$processing_fees_total)),
-      subtitle = tags$span(class = "kpi-label", "PROCESSING FEES"),
-      icon     = icon("credit-card"), color = "warning",
-      footer   = tags$span(class = "kpi-footer", "PayPal + CC + Bank")
-    )
-  })
-
-  output$kpi_cogs_total <- renderValueBox({
-    valueBox(
-      value    = tags$span(class = "kpi-value", fmt_currency(cogs_metrics$total_cogs)),
-      subtitle = tags$span(class = "kpi-label", "TOTAL COGS"),
-      icon     = icon("dollar-sign"), color = "danger",
-      footer   = tags$span(class = "kpi-footer", "QuickBooks total")
-    )
-  })
+  output$kpi_cogs_product  <- renderText({ fmt_currency(cogs_metrics$product_cogs) })
+  output$kpi_cogs_shipping <- renderText({ fmt_currency(cogs_metrics$shipping_cost) })
+  output$kpi_cogs_fees     <- renderText({ fmt_currency(cogs_metrics$processing_fees_total) })
+  output$kpi_cogs_total    <- renderText({ fmt_currency(cogs_metrics$total_cogs) })
 
   output$chart_cogs_breakdown <- renderPlotly({
     if (is.null(cogs_breakdown) || nrow(cogs_breakdown) == 0)
@@ -765,54 +653,23 @@ server <- function(input, output, session) {
     }) |> setNames(sources_to_check)
   })
 
-  output$kpi_alert_net <- renderValueBox({
-    valueBox(
-      value    = tags$span(class="kpi-value", fmt_currency(pl_metrics$net_income)),
-      subtitle = tags$span(class="kpi-label", "NET INCOME (QB)"),
-      icon     = icon("heartbeat"),
-      color    = if (!is.na(pl_metrics$net_income) && pl_metrics$net_income < 0) "danger" else "success",
-      footer   = tags$span(class="kpi-footer", "Jan 2025 – Jun 2026 · Full period")
-    )
-  })
+  output$kpi_alert_net <- renderText({ fmt_currency(pl_metrics$net_income) })
 
-  output$kpi_alert_cogs <- renderValueBox({
+  output$kpi_alert_cogs <- renderText({
     ratio <- if (!is.na(pl_metrics$cogs) && !is.na(pl_metrics$gross_revenue))
                round(pl_metrics$cogs / pl_metrics$gross_revenue * 100, 1) else NA
-    valueBox(
-      value    = tags$span(class="kpi-value", paste0(ratio, "%")),
-      subtitle = tags$span(class="kpi-label", "COGS % OF REVENUE"),
-      icon     = icon("boxes"),
-      color    = if (!is.na(ratio) && ratio > 65) "danger" else "warning",
-      footer   = tags$span(class="kpi-footer", "Critical threshold: > 65%")
-    )
+    ifelse(is.na(ratio), "N/A", paste0(ratio, "%"))
   })
 
-  output$kpi_alert_yoy <- renderValueBox({
+  output$kpi_alert_yoy <- renderText({
     chg <- yoy_q1_chg
-    valueBox(
-      value    = tags$span(class="kpi-value",
-                           ifelse(is.na(chg), "N/A", paste0(ifelse(chg >= 0, "+", ""), chg, "%"))),
-      subtitle = tags$span(class="kpi-label", "REVENUE YoY (Q1 2025 vs Q1 2026)"),
-      icon     = icon("arrow-trend-down"),
-      color    = if (!is.na(chg) && chg < -20) "danger"
-                 else if (!is.na(chg) && chg < 0) "warning" else "success",
-      footer   = tags$span(class="kpi-footer",
-                           paste0("Q1-2025: ", fmt_currency(q1_2025_rev),
-                                  " → Q1-2026: ", fmt_currency(q1_2026_rev)))
-    )
+    ifelse(is.na(chg), "N/A", paste0(ifelse(chg >= 0, "+", ""), chg, "%"))
   })
 
-  output$kpi_alert_refund <- renderValueBox({
-    rates <- refund_rates_reactive()
+  output$kpi_alert_refund <- renderText({
+    rates    <- refund_rates_reactive()
     hep_rate <- rates[["PayPal HEP"]]$rate
-    valueBox(
-      value    = tags$span(class="kpi-value", paste0(hep_rate, "%")),
-      subtitle = tags$span(class="kpi-label", "PAYPAL HEP REFUND RATE"),
-      icon     = icon("exclamation-triangle"),
-      color    = if (hep_rate > 8) "danger" else if (hep_rate > 5) "warning" else "success",
-      footer   = tags$span(class="kpi-footer",
-                           "Danger: >8% · Suspend risk: >12%")
-    )
+    paste0(hep_rate, "%")
   })
 
   output$chart_yoy <- renderPlotly({

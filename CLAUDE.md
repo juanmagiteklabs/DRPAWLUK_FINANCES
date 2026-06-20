@@ -2,7 +2,7 @@
 
 ## What This App Does
 R Shiny financial dashboard for DrPawluk / Health Energy Partners LLC.
-Covers January 2025 – June 2026 across four payment processors.
+Default date range: January 2026 – June 2026. Full historical range: Jan 2025 – Jun 2026.
 
 **Live URL:** https://magiteklabs.shinyapps.io/DRPAWLUK_FINANCES/
 **shinyapps.io account:** magiteklabs (juan@magiteklabs.co)
@@ -45,15 +45,25 @@ data/           — (gitignored) all data files go here
 3. **Profit & Loss** — QuickBooks P&L, vendor spend
 4. **Insights & Alerts** — YoY comparison, MoM %, refund rates, waterfall
 5. **COGS & Logistics** — supplier breakdown, shipping vendors
-6. **Raw Data Explorer** — filterable full transaction table + CSV export
+6. **Operations Costs** — placeholder tab (under construction)
+7. **Raw Data Explorer** — filterable full transaction table + CSV export
 
-## Key Findings (as of Jun 2026)
-- Revenue down **-38.6% YoY** (Q1 2025 → Q1 2026)
-- Net Income: **-$180,009** over the full period
-- COGS ratio: **70.9%** (critical threshold is 65%)
-- PayPal HEP refund rate: **~11.3%** (danger zone, suspend threshold is 12%)
-- Braintree shows **99.8% failure rate** due to active bot/fraud attack
-- Stripe launched Mar 2026, growing fast (only healthy revenue trend)
+## QuickBooks Data (Jan–Jun 19, 2026)
+- Gross Revenue: **$440,448.70**
+- COGS: **$237,814.19** (53.9% ratio)
+- Gross Profit: **$202,634.51**
+- Total Expenses: **$262,995.72**
+- **Net Income: -$61,008.40**
+
+## Known Data Gaps (as of Jun 2026)
+- PayPal HEP/HTW CSVs not yet uploaded — manual export from PayPal needed
+- Stripe CSV not yet in data/ — Stripe reports go to alex@drpawluk.com
+- Braintree CSV too large to deploy — use local only, RDS auto-cached
+
+## Data Loading Notes
+- Vendor amounts: column 10 of the xlsx (not 9) — confirmed from actual file inspection
+- Transaction List: skip=3 rows (header is on row 4, data starts row 5)
+- P&L patterns match `"^Total for Income"`, `"^Gross Profit$"`, `"^Net Income$"` etc.
 
 ## Deployment
 ```r

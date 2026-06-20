@@ -1,15 +1,13 @@
 # Data files — financial data stays local, not in version control
 data/
-
 # R environment
 .Rhistory
 .RData
 .Rproj.user
 *.Rproj
-
 # rsconnect deployment manifests (optional — keep if you want deploy history)
 # rsconnect/
-
 # OS
 .DS_Store
 Thumbs.db
+/Users/irisjeanjacobtizon/Documents/Rstudio Files/DRPAWLUK_FINANCES/.gmail_token
