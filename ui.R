@@ -149,7 +149,7 @@ bs4DashPage(
                       color:#AAAAAA; margin-bottom:4px;", "DATE RANGE"),
       dateRangeInput("date_range", label = NULL,
                      start = "2026-01-01", end = "2026-06-30",
-                     min   = "2025-01-01", max = "2026-12-31",
+                     min   = "2026-01-01", max = "2026-12-31",
                      format = "M d, yy", separator = " – ")
     ),
 
@@ -502,7 +502,7 @@ bs4DashPage(
     left  = tags$span(style = "color:#AAAAAA;font-size:11px;",
                       "DrPawluk Finances Dashboard"),
     right = tags$span(style = "color:#AAAAAA;font-size:11px;",
-                      "Jan 2025 – Jun 2026")
+                      "Jan 2026 – Jun 2026")
   )
 )   # end bs4DashPage
 ))) # end tags$div + shinyjs::hidden + tagList

@@ -21,9 +21,7 @@ DATA_DIR <- "data"
 
 files <- list(
   braintree = file.path(DATA_DIR, "Braintree transaction_search.csv"),
-  hep_2025  = file.path(DATA_DIR, "HEP PAYPAL Jan 1, 2025 - Dec 31, 2025.CSV"),
   hep_2026  = file.path(DATA_DIR, "HEP PAYPAL Jan 1, 2026 - Jun 1, 2026.CSV"),
-  htw_2025  = file.path(DATA_DIR, "High Tech Wellness Paypal Jan 1, 2025 - Dec 31, 2025.CSV"),
   htw_2026  = file.path(DATA_DIR, "High Tech Wellness Paypal Jan 1, 2026 - Jun 1, 2026.CSV"),
   stripe    = file.path(DATA_DIR, "Stripe Payment Report All Transaction.csv"),
   pl        = file.path(DATA_DIR, "Health Energy Partners LLC_Profit and Loss.xlsx"),
@@ -204,9 +202,7 @@ load_paypal <- function(path, source_name) {
   result
 }
 
-pp_hep_2025 <- load_paypal(files$hep_2025, "PayPal HEP")
 pp_hep_2026 <- load_paypal(files$hep_2026, "PayPal HEP")
-pp_htw_2025 <- load_paypal(files$htw_2025, "PayPal HTW")
 pp_htw_2026 <- load_paypal(files$htw_2026, "PayPal HTW")
 
 # ============================================================
@@ -249,12 +245,12 @@ if (file.exists(files$stripe)) {
 # COMBINE ALL TRANSACTIONS
 # ============================================================
 all_txn_list <- Filter(Negate(is.null),
-  list(bt_data, pp_hep_2025, pp_hep_2026, pp_htw_2025, pp_htw_2026, stripe_data))
+  list(bt_data, pp_hep_2026, pp_htw_2026, stripe_data))
 
 if (length(all_txn_list) > 0) {
   all_transactions <- rbindlist(all_txn_list, use.names = TRUE, fill = TRUE)
   all_transactions <- all_transactions[
-    !is.na(date) & date >= as.Date("2025-01-01") & date <= as.Date("2026-06-01")
+    !is.na(date) & date >= as.Date("2026-01-01") & date <= as.Date("2026-12-31")
   ]
   all_transactions[, `:=`(
     month   = floor_date(date, "month"),
@@ -370,7 +366,7 @@ if (file.exists(files$txlist)) {
         trans_type = as.character(trans_type)
       ) |>
       dplyr::filter(!is.na(date) & !is.na(amount) &
-                    date >= as.Date("2025-01-01") & date <= as.Date("2026-06-01"))
+                    date >= as.Date("2026-01-01") & date <= as.Date("2026-12-31"))
 
     txlist_raw$month <- floor_date(txlist_raw$date, "month")
 
@@ -507,8 +503,8 @@ if (file.exists(files$txlist)) {
     cogs_tx <- tx_full[
       !is.na(tx_full$split) &
       grepl("^50", tx_full$split) &
-      tx_full$date >= as.Date("2025-01-01") &
-      tx_full$date <= as.Date("2026-06-01"), ]
+      tx_full$date >= as.Date("2026-01-01") &
+      tx_full$date <= as.Date("2026-12-31"), ]
 
     if (nrow(cogs_tx) > 0) {
       cogs_tx$account_clean <- gsub("^[0-9]+ ", "", cogs_tx$split)
@@ -569,10 +565,10 @@ cogs_metrics <- list(
 # INSIGHTS & ALERTS — PRE-COMPUTED DATA
 # ============================================================
 
-# YoY monthly data
+# Monthly revenue by month (2026 only)
 yoy_data <- if (nrow(revenue_transactions) > 0) {
   revenue_transactions[
-    is_refund == FALSE & amount > 0 & yr %in% c(2025L, 2026L),
+    is_refund == FALSE & amount > 0,
     .(revenue = sum(amount, na.rm = TRUE)),
     by = .(year = yr, month_num = month(month))
   ][order(year, month_num)]
@@ -580,9 +576,9 @@ yoy_data <- if (nrow(revenue_transactions) > 0) {
   data.table(year = integer(), month_num = integer(), revenue = numeric())
 }
 
-q1_2025_rev <- sum(yoy_data[year == 2025L & month_num <= 3]$revenue, na.rm = TRUE)
+# Q1 2026 summary (no YoY comparison — 2025 data not loaded)
 q1_2026_rev <- sum(yoy_data[year == 2026L & month_num <= 3]$revenue, na.rm = TRUE)
-yoy_q1_chg  <- if (q1_2025_rev > 0) round((q1_2026_rev - q1_2025_rev) / q1_2025_rev * 100, 1) else NA_real_
+yoy_q1_chg  <- NA_real_
 
 # Large refunds (all sources, full period, >= $1000)
 large_refunds_all <- if (nrow(all_transactions) > 0) {
