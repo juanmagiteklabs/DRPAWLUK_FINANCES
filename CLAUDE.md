@@ -55,15 +55,27 @@ data/           — (gitignored) all data files go here
 - Total Expenses: **$262,995.72**
 - **Net Income: -$61,008.40**
 
-## Known Data Gaps (as of Jun 2026)
-- PayPal HEP/HTW CSVs not yet uploaded — manual export from PayPal needed
-- Stripe CSV not yet in data/ — Stripe reports go to alex@drpawluk.com
-- Braintree CSV too large to deploy — use local only, RDS auto-cached
+## Data Files (all in data/, gitignored — deployed to shinyapps.io manually)
+| File | Source | Period | Rows |
+|------|--------|--------|------|
+| `HEP PAYPAL Jan 1, 2026 - Jun 1, 2026.CSV` | PayPal HEP | Jan–Jun 2026 | 198 |
+| `High Tech Wellness Paypal Jan 1, 2026 - Jun 1, 2026.CSV` | PayPal HTW | Jan–Jun 2026 | 34 |
+| `Stripe Payment Report All Transaction.csv` | Stripe | Mar–Jun 2026 | 275 |
+| `Braintree transaction_search.csv` | Braintree | Jan–Feb 2026 | 322 |
+| `braintree_cache.rds` | Braintree (auto-built) | Jan–Feb 2026 | 193 settled |
+| `Health Energy Partners LLC_Profit and Loss.xlsx` | QuickBooks | Jan–Jun 19, 2026 | – |
+| `Health Energy Partners LLC_Purchases by Vendor Detail.xlsx` | QuickBooks | Jan–Jun 19, 2026 | 29 vendors |
+| `Health Energy Partners LLC_Transaction List by Date.xlsx` | QuickBooks | Jun 2026 | 103 rows |
+
+## Known Gaps
+- 2025 PayPal files not available — export from PayPal Activity Report if needed
+- Stripe reports go to alex@drpawluk.com, not juan@magiteklabs.co
 
 ## Data Loading Notes
-- Vendor amounts: column 10 of the xlsx (not 9) — confirmed from actual file inspection
-- Transaction List: skip=3 rows (header is on row 4, data starts row 5)
-- P&L patterns match `"^Total for Income"`, `"^Gross Profit$"`, `"^Net Income$"` etc.
+- PayPal: `setnames` regex MUST NOT use `\s` inside `[...]` — R's TRE treats it as literal 's',
+  stripping trailing 's' from "Status"→"Statu", "Gross"→"Gro". Fixed with `trimws()`.
+- Vendor amounts: column 10 of the xlsx (not 9)
+- Transaction List: skip=3 rows (header row 4, data starts row 5)
 
 ## Deployment
 ```r
