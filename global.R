@@ -176,9 +176,9 @@ load_paypal <- function(path, source_name) {
   })
   if (is.null(raw) || nrow(raw) == 0) return(NULL)
 
-  # Strip BOM and quotes from column names
+  # Strip BOM and quotes from column names, then trim whitespace
   setnames(raw, names(raw),
-           gsub('^[\xef\xbb\xbf"\\s]+|["\\s]+$', "", names(raw)))
+           trimws(gsub('^\xef\xbb\xbf|^"+|"+$', "", names(raw))))
 
   get_col <- function(dt, col, default = NA_character_) {
     if (col %in% names(dt)) dt[[col]] else rep(default, nrow(dt))
