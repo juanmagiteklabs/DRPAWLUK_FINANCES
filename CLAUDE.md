@@ -46,7 +46,15 @@ data/           — (gitignored) all data files go here
 4. **Insights & Alerts** — YoY comparison, MoM %, refund rates, waterfall
 5. **COGS & Logistics** — supplier breakdown, shipping vendors
 6. **Operations Costs** — placeholder tab (under construction)
-7. **Raw Data Explorer** — filterable full transaction table + CSV export
+7. **Raw Data Explorer** — filterable full transaction table + Outgoing Payments table (both CSV-exportable)
+
+## UI / DT Conventions
+- All cards use the same height: `CARD_H = "420px"` (TALL_H = CARD_H — no tall variants)
+- All chart areas inside cards: `CHART_H = "340px"`
+- All DT tables must have `ordering = TRUE` (default — never set `ordering = FALSE`)
+- Small tables use `dom = "tp"` (table + pagination); searchable tables use `dom = "frtip"`
+- No color styling on DT text (no formatStyle color calls) — plain dark text throughout
+- Outgoing Payments table: driven by global sidebar date range (`input$date_range`), not its own picker
 
 ## QuickBooks Data (Jan–Jun 19, 2026)
 - Gross Revenue: **$440,448.70**

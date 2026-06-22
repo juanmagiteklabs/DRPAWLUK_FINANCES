@@ -1,7 +1,7 @@
 # ---- shared constants ----
 CHART_H   <- "340px"
 CARD_H    <- "420px"
-TALL_H    <- "520px"
+TALL_H    <- CARD_H
 TABLE_SCY <- "310px"
 
 card <- function(..., width = 6, height = CARD_H) {
@@ -299,7 +299,7 @@ bs4DashPage(
         fluidRow(
           card(width = 8, height = TALL_H,
             title = tags$span(class = "ct", icon("building"), " TOP VENDOR SPEND"),
-            withSpinner(plotlyOutput("chart_vendor_spend", height = "450px"),
+            withSpinner(plotlyOutput("chart_vendor_spend", height = CHART_H),
                         color = "#1E90FF", type = 4)
           ),
           card(width = 4, height = TALL_H,
@@ -500,13 +500,6 @@ bs4DashPage(
         fluidRow(
           column(12,
             div(class = "filter-bar",
-              div(class = "filter-item filter-wide",
-                tags$label("OUTGOING DATE RANGE", class = "filter-label"),
-                dateRangeInput("outgoing_date_range", label = NULL,
-                               start = "2026-01-01", end   = "2026-06-30",
-                               min   = "2026-01-01", max   = "2026-12-31",
-                               format = "M d, yy", separator = " – ")
-              ),
               div(class = "filter-item filter-btn",
                 downloadButton("btn_export_outgoing_csv", "Export CSV", class = "btn-export")
               )

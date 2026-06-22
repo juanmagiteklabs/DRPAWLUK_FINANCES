@@ -372,21 +372,12 @@ server <- function(input, output, session) {
               options = list(
                 pageLength = 50, dom = "tp",
                 scrollY = "310px", scrollCollapse = TRUE,
-                ordering = FALSE,
                 columnDefs = list(list(className = "dt-right", targets = 1))
               )
     ) |>
     formatStyle("Account",
       fontWeight = styleEqual(key_rows, rep("bold", length(key_rows))),
       backgroundColor = styleEqual(key_rows, rep("#F0F4FF", length(key_rows)))
-    ) |>
-    formatStyle("Amount",
-      color = JS("function(v,r,d){
-        var s = (d[1]||'').replace(/[$,]/g,'');
-        var n = parseFloat(s);
-        if(isNaN(n)||s==='') return '#333';
-        return n < 0 ? '#E03131' : '#00A878';
-      }")
     )
   })
 
@@ -428,12 +419,11 @@ server <- function(input, output, session) {
               rownames  = FALSE,
               class     = "compact stripe",
               options   = list(
-                pageLength = 15, dom = "t",
-                scrollY = "310px", scrollCollapse = TRUE, ordering = FALSE,
+                pageLength = 15, dom = "tp",
+                scrollY = "310px", scrollCollapse = TRUE,
                 columnDefs = list(list(className = "dt-right", targets = 1))
               )
-    ) |>
-    formatStyle("Total Spent", color = COLORS$blue, fontWeight = "600")
+    )
   })
 
   # ============================================================
@@ -591,12 +581,11 @@ server <- function(input, output, session) {
 
     datatable(df, rownames = FALSE, class = "compact stripe",
               options = list(
-                pageLength = 20, dom = "t",
-                scrollY = "420px", scrollCollapse = TRUE, ordering = FALSE,
+                pageLength = 20, dom = "tp",
+                scrollY = "420px", scrollCollapse = TRUE,
                 columnDefs = list(list(className = "dt-right", targets = 1))
               )
-    ) |>
-    formatStyle("Amount Spent", color = COLORS$blue, fontWeight = "600")
+    )
   })
 
   output$table_cogs_detail <- renderDT({
@@ -620,14 +609,7 @@ server <- function(input, output, session) {
                 )
               )
     ) |>
-    formatCurrency("Amount", currency = "$", digits = 2) |>
-    formatStyle("Amount",
-      color = JS("function(v){ var n=parseFloat(v); return n<0?'#E03131':'#00A878'; }"),
-      fontWeight = "600"
-    ) |>
-    formatStyle("COGS Account",
-      color = COLORS$blue, fontWeight = "500"
-    )
+    formatCurrency("Amount", currency = "$", digits = 2)
   })
 
   # ============================================================
@@ -823,8 +805,7 @@ server <- function(input, output, session) {
         columnDefs = list(list(className = "dt-right", targets = 2))
       )
     ) |>
-    formatCurrency("Amount", currency = "$", digits = 2) |>
-    formatStyle("Amount", color = COLORS$red, fontWeight = "600")
+    formatCurrency("Amount", currency = "$", digits = 2)
   })
 
   output$chart_waterfall <- renderPlotly({
@@ -894,19 +875,7 @@ server <- function(input, output, session) {
                 )
               )
     ) |>
-    formatCurrency(c("Amount","Fee","Net"), currency = "$", digits = 2) |>
-    formatStyle("Amount",
-      color = JS("function(v){ var n=parseFloat(v); return n<0?'#FF4C4C':'#00C896'; }"),
-      fontWeight = "600") |>
-    formatStyle("Net",
-      color = JS("function(v){ var n=parseFloat(v); return n<0?'#FF4C4C':'#00C896'; }")) |>
-    formatStyle("Refund",
-      color = styleEqual(c(TRUE,FALSE), c(COLORS$red, COLORS$green))) |>
-    formatStyle("Status",
-      color = JS("function(v){ var s=(v||'').toLowerCase();
-        if(s==='settled'||s==='completed'||s==='paid') return '#00C896';
-        if(s.includes('reject')||s.includes('declin')||s==='failed') return '#FF4C4C';
-        return '#FFD700'; }"))
+    formatCurrency(c("Amount","Fee","Net"), currency = "$", digits = 2)
   })
 
   output$btn_export_csv <- downloadHandler(
@@ -918,8 +887,8 @@ server <- function(input, output, session) {
   # RAW DATA — OUTGOING PAYMENTS TABLE
   # ============================================================
   outgoing_table_data <- reactive({
-    req(input$outgoing_date_range)
-    dr <- input$outgoing_date_range
+    req(input$date_range)
+    dr <- input$date_range
     dt <- all_transactions[
       date >= dr[1] & date <= dr[2] &
       (balance_impact == "debit" | is_refund == TRUE | amount < 0)
@@ -954,14 +923,7 @@ server <- function(input, output, session) {
                 )
               )
     ) |>
-    formatCurrency(c("Amount", "Fee", "Net"), currency = "$", digits = 2) |>
-    formatStyle("Amount",
-      color      = JS("function(v){ var n=parseFloat(v); return n<0?'#FF4C4C':'#FFD700'; }"),
-      fontWeight = "600"
-    ) |>
-    formatStyle("Refund",
-      color = styleEqual(c(TRUE, FALSE), c(COLORS$red, COLORS$green))
-    )
+    formatCurrency(c("Amount", "Fee", "Net"), currency = "$", digits = 2)
   })
 
   output$btn_export_outgoing_csv <- downloadHandler(
