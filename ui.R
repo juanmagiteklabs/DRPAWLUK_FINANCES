@@ -493,6 +493,35 @@ bs4DashPage(
             style = "overflow:hidden;",
             withSpinner(DTOutput("table_raw"), color = "#FFD700", type = 4)
           )
+        ),
+
+        tags$hr(style = "border-color:#DEE2E6; margin:8px 0 16px;"),
+
+        fluidRow(
+          column(12,
+            div(class = "filter-bar",
+              div(class = "filter-item filter-wide",
+                tags$label("OUTGOING DATE RANGE", class = "filter-label"),
+                dateRangeInput("outgoing_date_range", label = NULL,
+                               start = "2026-01-01", end   = "2026-06-30",
+                               min   = "2026-01-01", max   = "2026-12-31",
+                               format = "M d, yy", separator = " – ")
+              ),
+              div(class = "filter-item filter-btn",
+                downloadButton("btn_export_outgoing_csv", "Export CSV", class = "btn-export")
+              )
+            )
+          )
+        ),
+
+        fluidRow(
+          box(
+            title = tags$span(class = "ct", icon("arrow-right-from-bracket"),
+                              " OUTGOING PAYMENTS & DEBITS"),
+            status = "gray-dark", width = 12, collapsible = FALSE,
+            style = "overflow:hidden;",
+            withSpinner(DTOutput("table_outgoing"), color = "#EF4444", type = 4)
+          )
         )
       )
     )

@@ -913,4 +913,59 @@ server <- function(input, output, session) {
     filename = function() paste0("drpawluk_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"),
     content  = function(file) write.csv(raw_table_data(), file, row.names = FALSE)
   )
+
+  # ============================================================
+  # RAW DATA — OUTGOING PAYMENTS TABLE
+  # ============================================================
+  outgoing_table_data <- reactive({
+    req(input$outgoing_date_range)
+    dr <- input$outgoing_date_range
+    dt <- all_transactions[
+      date >= dr[1] & date <= dr[2] &
+      (balance_impact == "debit" | is_refund == TRUE | amount < 0)
+    ]
+    df <- as.data.frame(dt[, .(
+      date, source, status, type,
+      amount, fee, net_amount,
+      balance_impact, is_refund,
+      description, customer_name, transaction_id
+    )])
+    names(df) <- c("Date","Source","Status","Type","Amount","Fee","Net",
+                   "Balance Impact","Refund","Description","Customer","Txn ID")
+    df$Date <- format(df$Date, "%Y-%m-%d")
+    df
+  })
+
+  output$table_outgoing <- renderDT({
+    df <- outgoing_table_data()
+    if (nrow(df) == 0)
+      return(datatable(data.frame(Message = "No outgoing payments in selected date range"),
+                       rownames = FALSE, options = list(dom = "t")))
+    datatable(df, rownames = FALSE, filter = "top",
+              class = "compact stripe hover",
+              options = list(
+                pageLength = 25, dom = "frtip",
+                scrollX = TRUE, scrollY = "450px",
+                columnDefs = list(
+                  list(className = "dt-right", targets = c(4, 5, 6)),
+                  list(width = "85px",  targets = 0),
+                  list(width = "110px", targets = 1),
+                  list(width = "85px",  targets = 2)
+                )
+              )
+    ) |>
+    formatCurrency(c("Amount", "Fee", "Net"), currency = "$", digits = 2) |>
+    formatStyle("Amount",
+      color      = JS("function(v){ var n=parseFloat(v); return n<0?'#FF4C4C':'#FFD700'; }"),
+      fontWeight = "600"
+    ) |>
+    formatStyle("Refund",
+      color = styleEqual(c(TRUE, FALSE), c(COLORS$red, COLORS$green))
+    )
+  })
+
+  output$btn_export_outgoing_csv <- downloadHandler(
+    filename = function() paste0("drpawluk_outgoing_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv"),
+    content  = function(file) write.csv(outgoing_table_data(), file, row.names = FALSE)
+  )
 }

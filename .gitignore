@@ -10,4 +10,6 @@ data/
 # OS
 .DS_Store
 Thumbs.db
-/Users/irisjeanjacobtizon/Documents/Rstudio Files/DRPAWLUK_FINANCES/.gmail_token
+# Gmail auth — keep off GitHub
+.gmail_token/
+.gmail_credentials.json
