@@ -46,6 +46,25 @@ server <- function(input, output, session) {
     ]
   })
 
+  # ---- QuickBooks reactives (follow Apply Filters date range) ----
+  filtered_pl_monthly <- reactive({
+    dr <- input$date_range
+    if (is.null(monthly_pl) || nrow(monthly_pl) == 0) return(data.table())
+    as.data.table(monthly_pl)[month >= dr[1] & month <= dr[2]]
+  }) |> bindEvent(input$apply_filters, ignoreNULL = FALSE, ignoreInit = FALSE)
+
+  filtered_txlist_monthly <- reactive({
+    dr <- input$date_range
+    if (is.null(txlist_monthly) || nrow(txlist_monthly) == 0) return(data.table())
+    as.data.table(txlist_monthly)[month >= dr[1] & month <= dr[2]]
+  }) |> bindEvent(input$apply_filters, ignoreNULL = FALSE, ignoreInit = FALSE)
+
+  filtered_cogs <- reactive({
+    dr <- input$date_range
+    if (is.null(cogs_tx) || nrow(as.data.frame(cogs_tx)) == 0) return(data.table())
+    as.data.table(cogs_tx)[date >= dr[1] & date <= dr[2]]
+  }) |> bindEvent(input$apply_filters, ignoreNULL = FALSE, ignoreInit = FALSE)
+
   observe({
     statuses <- sort(unique(all_transactions$status))
     updateSelectizeInput(session, "filter_status",
@@ -108,9 +127,9 @@ server <- function(input, output, session) {
     fmt_currency(gross - refunds)
   })
 
-  output$kpi_tx_count <- renderText({
-    rev <- filtered_revenue()
-    fmt_number(nrow(rev))
+  output$kpi_qb_expenses <- renderText({
+    val <- pl_metrics$total_expenses
+    fmt_currency(abs(ifelse(is.na(val), 0, val)))
   })
 
   # ============================================================
@@ -138,7 +157,8 @@ server <- function(input, output, session) {
         add_trace(y = ~refunds, name = "Refunds",type = "scatter", mode = "lines+markers",
                   line = list(color = COLORS$red, width = 2),
                   marker = list(color = COLORS$red, size = 5)) |>
-        layout(yaxis = list(tickprefix = "$", tickformat = ",.0f",
+        layout(xaxis = list(tickformat = "%b %Y"),
+               yaxis = list(tickprefix = "$", tickformat = ",.0f",
                             gridcolor = "#2A2A2A", zerolinecolor = "#2A2A2A",
                             tickfont = list(color = "#AAAAAA")),
                hovermode = "x unified")
@@ -161,8 +181,8 @@ server <- function(input, output, session) {
               textinfo = "label+percent",
               hovertemplate = "<b>%{label}</b><br>$%{value:,.0f}<extra></extra>",
               marker = list(
-                colors = c(COLORS$green, COLORS$blue, COLORS$yellow, "#9B59B6"),
-                line   = list(color = "#0A0A0A", width = 2)
+                colors = unname(GATEWAY_COLORS[by_src$source]),
+                line   = list(color = "#FFFFFF", width = 2)
               )) |>
         layout(showlegend = TRUE,
                legend = list(orientation = "v", x = 1.02, y = 0.5))
@@ -176,8 +196,7 @@ server <- function(input, output, session) {
     rev <- filtered_revenue()
     if (nrow(rev) == 0) return(empty_plot())
 
-    src_colors <- c("Braintree" = COLORS$blue, "PayPal HEP" = COLORS$green,
-                    "PayPal HTW" = COLORS$yellow, "Stripe" = "#9B59B6")
+    src_colors <- GATEWAY_COLORS
 
     monthly_src <- rev[, .(
       net = sum(amount[is_refund == FALSE & amount > 0], na.rm = TRUE) -
@@ -192,8 +211,134 @@ server <- function(input, output, session) {
                      hovertemplate = paste0("<b>", src, "</b><br>%{x|%b %Y}: $%{y:,.0f}<extra></extra>"))
     }
     dark_plot(layout(p, barmode = "stack",
+                     xaxis = list(tickformat = "%b %Y"),
                      yaxis = list(tickprefix = "$", tickformat = ",.0f"),
                      hovermode = "x unified"))
+  })
+
+  # ============================================================
+  # TAB 1: OVERVIEW — REFUNDS BY GATEWAY (monthly stacked bar)
+  # ============================================================
+  output$chart_ov_refunds_monthly <- renderPlotly({
+    rev <- filtered_revenue()
+    if (nrow(rev) == 0) return(empty_plot())
+    monthly_ref <- rev[is_refund == TRUE,
+                       .(total = sum(abs(amount), na.rm = TRUE)),
+                       by = .(month, source)][order(month)]
+    if (nrow(monthly_ref) == 0) return(empty_plot("No refunds in selected range"))
+    p <- plot_ly()
+    for (src in unique(monthly_ref$source)) {
+      d   <- monthly_ref[source == src]
+      col <- if (src %in% names(GATEWAY_COLORS)) GATEWAY_COLORS[[src]] else "#ADB5BD"
+      p   <- add_trace(p, x = d$month, y = d$total, name = src, type = "bar",
+                       marker = list(color = col),
+                       hovertemplate = paste0("<b>", src, "</b><br>%{x|%b %Y}: $%{y:,.0f}<extra></extra>"))
+    }
+    light_plot(layout(p, barmode = "stack",
+                      xaxis = list(tickformat = "%b %Y"),
+                      yaxis = list(tickprefix = "$", tickformat = ",.0f"),
+                      hovermode = "x unified"))
+  })
+
+  # ============================================================
+  # TAB 1: OVERVIEW — REFUND TOTALS BY GATEWAY (horizontal bar)
+  # ============================================================
+  output$chart_ov_refunds_bar <- renderPlotly({
+    rev <- filtered_revenue()
+    if (nrow(rev) == 0) return(empty_plot())
+    by_src <- rev[is_refund == TRUE,
+                  .(total = sum(abs(amount), na.rm = TRUE), n = .N),
+                  by = source][order(-total)]
+    if (nrow(by_src) == 0) return(empty_plot("No refunds in selected range"))
+    light_plot(
+      plot_ly(by_src,
+        y = ~factor(source, levels = rev(source)), x = ~total,
+        type = "bar", orientation = "h",
+        marker = list(color = unname(GATEWAY_COLORS[by_src$source])),
+        text  = ~paste0(n, " refund", ifelse(n == 1, "", "s")),
+        textposition = "outside",
+        hovertemplate = "<b>%{y}</b><br>$%{x:,.0f} · %{text}<extra></extra>"
+      ) |>
+      layout(
+        xaxis = list(tickprefix = "$", tickformat = ",.0f", type = "linear"),
+        yaxis = list(tickfont = list(color = "#1A1A2E", size = 11), automargin = TRUE),
+        margin = list(l = 10, r = 90, t = 20, b = 50)
+      )
+    )
+  })
+
+  # ============================================================
+  # TAB 1: OVERVIEW — MONTHLY EXPENSES (QuickBooks)
+  # ============================================================
+  output$chart_ov_expenses <- renderPlotly({
+    df <- filtered_txlist_monthly()
+    if (nrow(df) == 0) {
+      if (is.null(txlist_monthly) || nrow(txlist_monthly) == 0)
+        return(empty_plot("QuickBooks monthly data not available"))
+      df <- as.data.table(txlist_monthly)
+    }
+    p <- plot_ly(df, x = ~month) |>
+      add_trace(y = ~qb_revenue, name = "QB Revenue",
+                type = "bar", marker = list(color = paste0(COLORS$blue, "99")),
+                hovertemplate = "Revenue: $%{y:,.0f}<extra></extra>") |>
+      add_trace(y = ~-qb_expenses, name = "QB Expenses",
+                type = "bar", marker = list(color = paste0(COLORS$red, "99")),
+                customdata = ~qb_expenses,
+                hovertemplate = "Expenses: $%{customdata:,.0f}<extra></extra>") |>
+      add_trace(y = ~qb_net, name = "Net Income",
+                type = "scatter", mode = "lines+markers",
+                line   = list(color = COLORS$blue, width = 2.5),
+                marker = list(color = ifelse(df$qb_net >= 0, COLORS$green, COLORS$red), size = 7),
+                hovertemplate = "Net: $%{y:,.0f}<extra></extra>")
+    light_plot(layout(p, barmode = "relative",
+                      xaxis = list(tickformat = "%b %Y"),
+                      yaxis = list(tickprefix = "$", tickformat = ",.0f",
+                                   zerolinecolor = "#6C757D", zerolinewidth = 1.5),
+                      hovermode = "x unified"))
+  })
+
+  # ============================================================
+  # TAB 1: OVERVIEW — FEES DONUT (QuickBooks P&L)
+  # ============================================================
+  output$chart_ov_fees_donut <- renderPlotly({
+    if (is.null(processing_fees) || nrow(processing_fees) == 0)
+      return(empty_plot("Processing fee data not available (requires QuickBooks P&L)"))
+    fee_colors <- c(COLORS$blue, COLORS$yellow, COLORS$green)
+    light_plot(
+      plot_ly(processing_fees,
+        labels = ~label_clean, values = ~value,
+        type = "pie", hole = 0.52,
+        textinfo = "label+percent",
+        hovertemplate = "<b>%{label}</b><br>$%{value:,.0f}<extra></extra>",
+        marker = list(
+          colors = fee_colors[seq_len(nrow(processing_fees))],
+          line   = list(color = "#FFFFFF", width = 2)
+        )
+      ) |>
+      layout(showlegend = TRUE,
+             legend = list(orientation = "v", x = 1.0, y = 0.5, font = list(size = 11)))
+    )
+  })
+
+  # ============================================================
+  # TAB 1: OVERVIEW — NET RECONCILIATION TABLE
+  # ============================================================
+  output$table_ov_fees <- renderDT({
+    rev <- filtered_revenue()
+    if (nrow(rev) == 0) return(datatable(data.frame(Message = "No data")))
+    fee_tbl <- rev[, .(
+      Sales   = sum(ifelse(!is_refund & amount > 0, amount, 0), na.rm = TRUE),
+      Refunds = sum(ifelse(is_refund, abs(amount), 0), na.rm = TRUE),
+      Fees    = sum(ifelse(is.na(fee), 0, fee), na.rm = TRUE)
+    ), by = source]
+    fee_tbl[, Net := Sales - Refunds - Fees]
+    df <- as.data.frame(fee_tbl[order(-Sales)])
+    names(df)[1] <- "Gateway"
+    datatable(df, rownames = FALSE, class = "compact stripe",
+              options = list(pageLength = 10, dom = "t",
+                             columnDefs = list(list(className = "dt-right", targets = 1:4)))
+    ) |>
+    formatCurrency(c("Sales", "Refunds", "Fees", "Net"), currency = "$", digits = 2)
   })
 
   # ============================================================
@@ -236,8 +381,7 @@ server <- function(input, output, session) {
     rev <- filtered_revenue()
     if (nrow(rev) == 0) return(empty_plot())
 
-    src_colors <- c("Braintree" = COLORS$blue, "PayPal HEP" = COLORS$green,
-                    "PayPal HTW" = COLORS$yellow, "Stripe" = "#9B59B6")
+    src_colors <- GATEWAY_COLORS
 
     by_src <- rev[is_refund == FALSE, .N, by = .(month, source)][order(month)]
     p <- plot_ly()
@@ -248,6 +392,7 @@ server <- function(input, output, session) {
                      hovertemplate = paste0("<b>", src, "</b><br>%{x|%b %Y}: %{y}<extra></extra>"))
     }
     dark_plot(layout(p, barmode = "stack",
+                     xaxis = list(tickformat = "%b %Y"),
                      yaxis = list(title = "Count", gridcolor = "#2A2A2A"),
                      hovermode = "x unified"))
   })
@@ -268,9 +413,9 @@ server <- function(input, output, session) {
 
     dark_plot(
       plot_ly(avg_src, y = ~source, x = ~avg_val, type = "bar", orientation = "h",
-              marker = list(color = colorRampPalette(c(COLORS$blue, COLORS$green))(n_rows)),
+              marker = list(color = unname(GATEWAY_COLORS[avg_src$source])),
               hovertemplate = "<b>%{y}</b><br>Avg: $%{x:,.2f}<extra></extra>") |>
-        layout(xaxis = list(tickprefix = "$", tickformat = ",.0f"),
+        layout(xaxis = list(tickprefix = "$", tickformat = ",.0f", type = "linear"),
                yaxis = list(tickfont = list(color = "#FFFFFF")))
     )
   })
@@ -302,27 +447,44 @@ server <- function(input, output, session) {
                        hovertemplate = paste0("<b>", st, "</b><br>%{x|%b %Y}: %{y:,}<extra></extra>"))
     }
     dark_plot(layout(p, barmode = "stack",
+                     xaxis = list(tickformat = "%b %Y"),
                      yaxis = list(tickformat = ",d"),
                      hovermode = "x unified"))
   })
 
   # ============================================================
-  # TAB 3: P&L KPIs
+  # TAB 3: P&L KPIs  (date-filtered via Apply Filters)
   # ============================================================
-  output$kpi_pl_revenue <- renderText({ fmt_currency(pl_metrics$gross_revenue) })
-  output$kpi_pl_cogs    <- renderText({ fmt_currency(pl_metrics$cogs) })
-  output$kpi_pl_profit  <- renderText({ fmt_currency(pl_metrics$gross_profit) })
-  output$kpi_pl_net     <- renderText({ fmt_currency(pl_metrics$net_income) })
+  output$kpi_pl_revenue <- renderText({
+    df <- filtered_pl_monthly()
+    if (nrow(df) == 0) return(fmt_currency(pl_metrics$gross_revenue))
+    fmt_currency(sum(df$gross_revenue, na.rm = TRUE))
+  })
+  output$kpi_pl_cogs <- renderText({
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0) return(fmt_currency(abs(ifelse(is.na(pl_metrics$cogs), 0, pl_metrics$cogs))))
+    fmt_currency(abs(sum(dt$amount, na.rm = TRUE)))
+  })
+  output$kpi_pl_profit <- renderText({
+    rev_total  <- sum(filtered_pl_monthly()$gross_revenue, na.rm = TRUE)
+    cogs_total <- abs(sum(filtered_cogs()$amount, na.rm = TRUE))
+    fmt_currency(rev_total - cogs_total)
+  })
+  output$kpi_pl_net <- renderText({
+    df <- filtered_pl_monthly()
+    if (nrow(df) == 0) return(fmt_currency(pl_metrics$net_income))
+    fmt_currency(sum(df$net_income, na.rm = TRUE))
+  })
 
   # ============================================================
   # TAB 3: MONTHLY P&L CHART
   # ============================================================
   output$chart_monthly_pl <- renderPlotly({
-    if (is.null(monthly_pl) || nrow(monthly_pl) == 0)
-      return(empty_plot("No monthly P&L data"))
+    monthly_pl_df <- filtered_pl_monthly()
+    if (nrow(monthly_pl_df) == 0) return(empty_plot("No monthly P&L data for selected range"))
 
     dark_plot(
-      plot_ly(monthly_pl, x = ~month) |>
+      plot_ly(monthly_pl_df, x = ~month) |>
         add_trace(y = ~gross_revenue, name = "Revenue",
                   type = "bar", marker = list(color = paste0(COLORS$green, "AA")),
                   hovertemplate = "Revenue: $%{y:,.0f}<extra></extra>") |>
@@ -336,6 +498,7 @@ server <- function(input, output, session) {
                   marker = list(color = COLORS$blue, size = 7),
                   hovertemplate = "Net: $%{y:,.0f}<extra></extra>") |>
         layout(barmode = "relative",
+               xaxis = list(tickformat = "%b %Y"),
                yaxis = list(tickprefix = "$", tickformat = ",.0f",
                             zerolinecolor = "#555555"),
                hovermode = "x unified")
@@ -429,10 +592,22 @@ server <- function(input, output, session) {
   # ============================================================
   # TAB 4: COGS & LOGISTICS
   # ============================================================
-  output$kpi_cogs_product  <- renderText({ fmt_currency(cogs_metrics$product_cogs) })
-  output$kpi_cogs_shipping <- renderText({ fmt_currency(cogs_metrics$shipping_cost) })
-  output$kpi_cogs_fees     <- renderText({ fmt_currency(cogs_metrics$processing_fees_total) })
-  output$kpi_cogs_total    <- renderText({ fmt_currency(cogs_metrics$total_cogs) })
+  output$kpi_cogs_product <- renderText({
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0) return(fmt_currency(cogs_metrics$product_cogs))
+    fmt_currency(abs(sum(dt[grepl("^50000", dt$split)]$amount, na.rm = TRUE)))
+  })
+  output$kpi_cogs_shipping <- renderText({
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0) return(fmt_currency(cogs_metrics$shipping_cost))
+    fmt_currency(abs(sum(dt[grepl("^5070[01]", dt$split)]$amount, na.rm = TRUE)))
+  })
+  output$kpi_cogs_fees  <- renderText({ fmt_currency(cogs_metrics$processing_fees_total) })
+  output$kpi_cogs_total <- renderText({
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0) return(fmt_currency(cogs_metrics$total_cogs))
+    fmt_currency(abs(sum(dt$amount, na.rm = TRUE)))
+  })
 
   output$chart_cogs_breakdown <- renderPlotly({
     if (is.null(cogs_breakdown) || nrow(cogs_breakdown) == 0)
@@ -485,16 +660,25 @@ server <- function(input, output, session) {
 
   # ---- Product COGS by supplier ----
   output$chart_cogs_supplier <- renderPlotly({
-    if (is.null(cogs_by_supplier) || nrow(cogs_by_supplier) == 0)
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0 && (is.null(cogs_by_supplier) || nrow(cogs_by_supplier) == 0))
       return(empty_plot("No supplier PO data found"))
 
-    # Collapse to one row per vendor (multiple splits → sum)
-    df <- cogs_by_supplier |>
-      dplyr::group_by(name) |>
-      dplyr::summarise(total = sum(total, na.rm = TRUE),
-                       n_orders = sum(n_orders), .groups = "drop") |>
-      dplyr::filter(!is.na(name) & name != "") |>
-      dplyr::arrange(total)
+    df <- if (nrow(dt) > 0) {
+      dt |>
+        dplyr::group_by(name) |>
+        dplyr::summarise(total = sum(amount, na.rm = TRUE),
+                         n_orders = dplyr::n(), .groups = "drop") |>
+        dplyr::filter(!is.na(name) & name != "") |>
+        dplyr::arrange(total)
+    } else {
+      cogs_by_supplier |>
+        dplyr::group_by(name) |>
+        dplyr::summarise(total = sum(total, na.rm = TRUE),
+                         n_orders = sum(n_orders), .groups = "drop") |>
+        dplyr::filter(!is.na(name) & name != "") |>
+        dplyr::arrange(total)
+    }
 
     n  <- nrow(df)
     bar_colors <- colorRampPalette(c(COLORS$blue, "#0D3B8C"))(n)
@@ -520,8 +704,18 @@ server <- function(input, output, session) {
 
   # ---- Monthly COGS purchase order trend ----
   output$chart_cogs_monthly <- renderPlotly({
-    if (is.null(cogs_monthly) || nrow(cogs_monthly) == 0)
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0 && (is.null(cogs_monthly) || nrow(cogs_monthly) == 0))
       return(empty_plot("No monthly COGS data"))
+
+    cm <- if (nrow(dt) > 0) {
+      dt |>
+        dplyr::group_by(month, account_clean) |>
+        dplyr::summarise(total = sum(amount, na.rm = TRUE), .groups = "drop") |>
+        as.data.frame()
+    } else {
+      cogs_monthly
+    }
 
     acct_colors <- c(
       "Product COGS"        = COLORS$red,
@@ -533,14 +727,15 @@ server <- function(input, output, session) {
     )
 
     p <- plot_ly()
-    for (acct in unique(cogs_monthly$account_clean)) {
-      d   <- cogs_monthly[cogs_monthly$account_clean == acct, ]
+    for (acct in unique(cm$account_clean)) {
+      d   <- cm[cm$account_clean == acct, ]
       col <- if (!is.na(acct_colors[acct])) acct_colors[[acct]] else "#ADB5BD"
       p   <- add_trace(p, x = d$month, y = d$total, name = acct,
                        type = "bar", marker = list(color = col),
                        hovertemplate = paste0("<b>", acct, "</b><br>%{x|%b %Y}: $%{y:,.0f}<extra></extra>"))
     }
     light_plot(layout(p, barmode = "stack",
+                      xaxis = list(tickformat = "%b %Y"),
                       yaxis = list(tickprefix = "$", tickformat = ",.0f"),
                       hovermode = "x unified"))
   })
@@ -589,12 +784,21 @@ server <- function(input, output, session) {
   })
 
   output$table_cogs_detail <- renderDT({
-    if (is.null(cogs_txn_detail) || nrow(cogs_txn_detail) == 0)
+    dt <- filtered_cogs()
+    if (nrow(dt) == 0 && (is.null(cogs_txn_detail) || nrow(cogs_txn_detail) == 0))
       return(datatable(data.frame(
         Message = "No COGS purchase order transactions found in Transaction List")))
 
-    df <- cogs_txn_detail
-    df$Date <- format(df$Date, "%Y-%m-%d")
+    df <- if (nrow(dt) > 0) {
+      d <- as.data.frame(dt[, c("date","trans_type","num","name","memo","account_clean","amount")])
+      names(d) <- c("Date","Type","PO #","Vendor","Memo","Account","Amount")
+      d$Date <- format(d$Date, "%Y-%m-%d")
+      d
+    } else {
+      d <- cogs_txn_detail
+      d$Date <- format(d$Date, "%Y-%m-%d")
+      d
+    }
 
     datatable(df, rownames = FALSE, filter = "top",
               class = "compact stripe",
@@ -635,11 +839,21 @@ server <- function(input, output, session) {
     }) |> setNames(sources_to_check)
   })
 
-  output$kpi_alert_net <- renderText({ fmt_currency(pl_metrics$net_income) })
+  output$kpi_alert_net <- renderText({
+    df <- filtered_pl_monthly()
+    if (nrow(df) > 0) {
+      fmt_currency(sum(df$net_income, na.rm = TRUE))
+    } else {
+      fmt_currency(pl_metrics$net_income)
+    }
+  })
 
   output$kpi_alert_cogs <- renderText({
-    ratio <- if (!is.na(pl_metrics$cogs) && !is.na(pl_metrics$gross_revenue))
-               round(pl_metrics$cogs / pl_metrics$gross_revenue * 100, 1) else NA
+    df <- filtered_pl_monthly()
+    dt <- filtered_cogs()
+    gross <- if (nrow(df) > 0) sum(df$gross_revenue, na.rm = TRUE) else pl_metrics$gross_revenue
+    cogs_amt <- if (nrow(dt) > 0) abs(sum(dt$amount, na.rm = TRUE)) else abs(pl_metrics$cogs)
+    ratio <- if (!is.na(gross) && gross > 0) round(cogs_amt / gross * 100, 1) else NA
     ifelse(is.na(ratio), "N/A", paste0(ratio, "%"))
   })
 
@@ -655,11 +869,19 @@ server <- function(input, output, session) {
   })
 
   output$chart_yoy <- renderPlotly({
-    if (is.null(yoy_data) || nrow(yoy_data) == 0) return(empty_plot())
+    rev <- filtered_revenue()
+    yd <- if (nrow(rev) > 0) {
+      rev[is_refund == FALSE & amount > 0,
+          .(revenue = sum(amount, na.rm = TRUE)),
+          by = .(year = year(date), month_num = month(date))]
+    } else {
+      yoy_data
+    }
+    if (is.null(yd) || nrow(yd) == 0) return(empty_plot())
     month_labels <- c("Jan","Feb","Mar","Apr","May","Jun",
                       "Jul","Aug","Sep","Oct","Nov","Dec")
-    d2025 <- yoy_data[year == 2025L]
-    d2026 <- yoy_data[year == 2026L]
+    d2025 <- yd[year == 2025L]
+    d2026 <- yd[year == 2026L]
     p <- plot_ly() |>
       add_trace(x = month_labels[d2025$month_num], y = d2025$revenue,
                 name = "2025", type = "bar",
@@ -696,16 +918,20 @@ server <- function(input, output, session) {
                 type = "scatter", mode = "lines",
                 line = list(color = "#ADB5BD", width = 1, dash = "dot"),
                 name = "Zero", showlegend = FALSE) |>
-      layout(yaxis = list(ticksuffix = "%", zeroline = TRUE,
+      layout(xaxis = list(tickformat = "%b %Y"),
+             yaxis = list(ticksuffix = "%", zeroline = TRUE,
                           zerolinecolor = "#ADB5BD", zerolinewidth = 1.5),
              hovermode = "x unified")
     light_plot(p)
   })
 
   output$chart_burn_rate <- renderPlotly({
-    if (is.null(txlist_monthly) || nrow(txlist_monthly) == 0)
-      return(empty_plot("QuickBooks monthly data not available"))
-    df    <- as.data.table(txlist_monthly)
+    df <- filtered_txlist_monthly()
+    if (nrow(df) == 0) {
+      if (is.null(txlist_monthly) || nrow(txlist_monthly) == 0)
+        return(empty_plot("QuickBooks monthly data not available"))
+      df <- as.data.table(txlist_monthly)
+    }
     cols  <- ifelse(df$qb_net >= 0, COLORS$green, COLORS$red)
     p <- plot_ly(df, x = ~month) |>
       add_trace(y = ~qb_revenue, name = "QB Revenue",
@@ -722,6 +948,7 @@ server <- function(input, output, session) {
                               size  = 7),
                 hovertemplate = "Net: $%{y:,.0f}<extra></extra>")
     light_plot(layout(p, barmode = "relative",
+                      xaxis = list(tickformat = "%b %Y"),
                       yaxis = list(tickprefix = "$", tickformat = ",.0f",
                                    zerolinecolor = "#6C757D", zerolinewidth = 1.5),
                       hovermode = "x unified"))
@@ -746,7 +973,8 @@ server <- function(input, output, session) {
 
     p <- plot_ly(df,
       x = ~source, y = ~rate, type = "bar",
-      marker = list(color = bar_cols),
+      marker = list(color = unname(GATEWAY_COLORS[df$source]),
+                    line  = list(color = bar_cols, width = 3)),
       hovertemplate = "<b>%{x}</b><br>Refund rate: %{y:.1f}%<extra></extra>"
     ) |>
     layout(
@@ -779,9 +1007,10 @@ server <- function(input, output, session) {
                 marker = list(color = COLORS$blue, size = 6),
                 hovertemplate = "%{x|%b %Y}: %{y} txns<extra></extra>")
     light_plot(layout(p,
+      xaxis  = list(tickformat = "%b %Y"),
       yaxis  = list(tickprefix = "$", tickformat = ",.0f"),
       yaxis2 = list(overlaying = "y", side = "right",
-                    showgrid = FALSE, tickfont = list(color = COLORS$blue)),
+                    showgrid = FALSE, tickfont = list(color = GATEWAY_COLORS[["Stripe"]])),
       hovermode = "x unified"
     ))
   })

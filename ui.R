@@ -204,30 +204,81 @@ bs4DashPage(
       tabItem(tabName = "overview",
 
         kpi_row(
-          kpi_box("kpi_gross_revenue", "Gross Revenue",       "dollar-sign",       "#4B4F8F"),
-          kpi_box("kpi_refunds",       "Total Refunds",        "rotate-left",       "#EF4444"),
-          kpi_box("kpi_net_revenue",   "Net Revenue",          "chart-line",        "#10B981"),
-          kpi_box("kpi_tx_count",      "Total Transactions",   "exchange-alt",      "#9BC3E6")
+          kpi_box("kpi_gross_revenue", "Sales Revenue",      "dollar-sign",  "#1971C2"),
+          kpi_box("kpi_refunds",       "Total Refunds",       "rotate-left",  "#E03131"),
+          kpi_box("kpi_net_revenue",   "Net Revenue",         "chart-line",   "#00A878"),
+          kpi_box("kpi_qb_expenses",   "QB Expenses (YTD)",  "file-invoice", "#E67700")
+        ),
+
+        # ── ROW 1: SALES REVENUE ───────────────────────────
+        tags$div(class = "ov-header", style = "border-left-color:#1971C2;",
+          icon("dollar-sign"), " SALES REVENUE"
         ),
 
         fluidRow(
-          card(width = 8, height = CARD_H,
-            title = tags$span(class = "ct", icon("chart-line"), " MONTHLY REVENUE TREND"),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("chart-line"), " MONTHLY SALES BY GATEWAY"),
             withSpinner(plotlyOutput("chart_monthly_trend", height = CHART_H),
                         color = "#9BC3E6", type = 4)
           ),
-          card(width = 4, height = CARD_H,
-            title = tags$span(class = "ct", icon("chart-pie"), " REVENUE BY SOURCE"),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("chart-pie"), " REVENUE SHARE BY GATEWAY"),
             withSpinner(plotlyOutput("chart_source_pie", height = CHART_H),
                         color = "#9BC3E6", type = 4)
           )
         ),
 
+        # ── ROW 2: NET REVENUE + REFUNDS ───────────────────
+        tags$div(class = "ov-header", style = "border-left-color:#1971C2;",
+          icon("chart-bar"), " NET REVENUE & REFUNDS"
+        ),
+
         fluidRow(
-          card(width = 12, height = CARD_H,
-            title = tags$span(class = "ct", icon("chart-bar"), " NET REVENUE BY SOURCE — MONTHLY"),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("chart-bar"), " NET REVENUE BY GATEWAY — MONTHLY"),
             withSpinner(plotlyOutput("chart_source_bar", height = CHART_H),
                         color = "#9BC3E6", type = 4)
+          ),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("chart-bar"), " MONTHLY REFUNDS BY GATEWAY"),
+            withSpinner(plotlyOutput("chart_ov_refunds_monthly", height = CHART_H),
+                        color = "#E03131", type = 4)
+          )
+        ),
+
+        # ── ROW 3: REFUND TOTALS + EXPENSES ────────────────
+        tags$div(class = "ov-header", style = "border-left-color:#E03131;",
+          icon("rotate-left"), " REFUND TOTALS & EXPENSES"
+        ),
+
+        fluidRow(
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("scale-unbalanced"), " REFUND TOTALS BY GATEWAY"),
+            withSpinner(plotlyOutput("chart_ov_refunds_bar", height = CHART_H),
+                        color = "#E03131", type = 4)
+          ),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("fire"), " MONTHLY REVENUE vs EXPENSES (QuickBooks)"),
+            withSpinner(plotlyOutput("chart_ov_expenses", height = CHART_H),
+                        color = "#E67700", type = 4)
+          )
+        ),
+
+        # ── ROW 4: PROCESSING FEES ─────────────────────────
+        tags$div(class = "ov-header", style = "border-left-color:#635BFF;",
+          icon("credit-card"), " PROCESSING FEES & NET RECONCILIATION"
+        ),
+
+        fluidRow(
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("chart-pie"), " FEES BY TYPE (QuickBooks P&L)"),
+            withSpinner(plotlyOutput("chart_ov_fees_donut", height = CHART_H),
+                        color = "#635BFF", type = 4)
+          ),
+          card(width = 6, height = CARD_H,
+            title = tags$span(class = "ct", icon("table"), " NET RECONCILIATION BY GATEWAY"),
+            withSpinner(DTOutput("table_ov_fees"),
+                        color = "#635BFF", type = 4)
           )
         )
       ),
@@ -245,13 +296,13 @@ bs4DashPage(
         ),
 
         fluidRow(
-          card(width = 7, height = CARD_H,
+          card(width = 6, height = CARD_H,
             title = tags$span(class = "ct", icon("layer-group"),
                               " MONTHLY TRANSACTIONS BY SOURCE"),
             withSpinner(plotlyOutput("chart_vol_stacked", height = CHART_H),
                         color = "#1E90FF", type = 4)
           ),
-          card(width = 5, height = CARD_H,
+          card(width = 6, height = CARD_H,
             title = tags$span(class = "ct", icon("dollar-sign"),
                               " AVG TRANSACTION VALUE BY SOURCE"),
             withSpinner(plotlyOutput("chart_avg_value", height = CHART_H),
@@ -282,13 +333,13 @@ bs4DashPage(
         ),
 
         fluidRow(
-          card(width = 7, height = CARD_H,
+          card(width = 6, height = CARD_H,
             title = tags$span(class = "ct", icon("calendar"),
                               " MONTHLY REVENUE & EXPENSES"),
             withSpinner(plotlyOutput("chart_monthly_pl", height = CHART_H),
                         color = "#9BC3E6", type = 4)
           ),
-          card(width = 5, height = CARD_H,
+          card(width = 6, height = CARD_H,
             title = tags$span(class = "ct", icon("file-invoice-dollar"),
                               " P&L SUMMARY"),
             withSpinner(DTOutput("table_pl_summary"),
@@ -297,12 +348,12 @@ bs4DashPage(
         ),
 
         fluidRow(
-          card(width = 8, height = TALL_H,
+          card(width = 6, height = TALL_H,
             title = tags$span(class = "ct", icon("building"), " TOP VENDOR SPEND"),
             withSpinner(plotlyOutput("chart_vendor_spend", height = CHART_H),
                         color = "#1E90FF", type = 4)
           ),
-          card(width = 4, height = TALL_H,
+          card(width = 6, height = TALL_H,
             title = tags$span(class = "ct", icon("list"), " TOP 15 VENDORS"),
             withSpinner(DTOutput("table_vendor_top"),
                         color = "#1E90FF", type = 4)

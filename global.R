@@ -47,6 +47,14 @@ COLORS <- list(
   text2  = "#6C757D"
 )
 
+# Consistent gateway color palette — used across ALL tabs
+GATEWAY_COLORS <- c(
+  "Braintree"  = "#1971C2",   # blue
+  "PayPal HEP" = "#00A878",   # green
+  "PayPal HTW" = "#E67700",   # amber
+  "Stripe"     = "#635BFF"    # Stripe violet
+)
+
 PLOTLY_LAYOUT <- list(
   paper_bgcolor = "rgba(0,0,0,0)",
   plot_bgcolor  = "rgba(0,0,0,0)",
@@ -465,6 +473,7 @@ processing_fees   <- NULL
 cogs_by_supplier  <- NULL
 cogs_monthly      <- NULL
 cogs_txn_detail   <- NULL
+cogs_tx           <- NULL
 
 # ---- P&L-based breakdowns ----
 if (!is.null(pl_table)) {

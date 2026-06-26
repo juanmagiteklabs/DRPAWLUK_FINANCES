@@ -40,7 +40,11 @@ data/           — (gitignored) all data files go here
 ```
 
 ## Tabs
-1. **Overview** — 4 KPIs, monthly trend, source charts
+1. **Overview** — 4 KPIs + 8 chart/table cards in a strict 2-col × 4-row grid:
+   - Row 1 (Sales Revenue): Monthly Sales by Gateway | Revenue Share Pie
+   - Row 2 (Net Revenue & Refunds): Net Revenue by Gateway | Monthly Refunds
+   - Row 3 (Refund Totals & Expenses): Refund Totals by Gateway | Monthly Revenue vs Expenses
+   - Row 4 (Processing Fees): Fees by Type donut | Net Reconciliation table
 2. **Transaction Volume** — counts, avg values, Braintree failure rate
 3. **Profit & Loss** — QuickBooks P&L, vendor spend
 4. **Insights & Alerts** — YoY comparison, MoM %, refund rates, waterfall
@@ -51,10 +55,26 @@ data/           — (gitignored) all data files go here
 ## UI / DT Conventions
 - All cards use the same height: `CARD_H = "420px"` (TALL_H = CARD_H — no tall variants)
 - All chart areas inside cards: `CHART_H = "340px"`
+- All card widths: **6+6 symmetric** (never 7+5, 8+4, or 12 alone) — COGS & Logistics tab is the reference design
 - All DT tables must have `ordering = TRUE` (default — never set `ordering = FALSE`)
 - Small tables use `dom = "tp"` (table + pagination); searchable tables use `dom = "frtip"`
 - No color styling on DT text (no formatStyle color calls) — plain dark text throughout
 - Outgoing Payments table: driven by global sidebar date range (`input$date_range`), not its own picker
+
+## Gateway Color Coding (GATEWAY_COLORS in global.R)
+All gateway-colored charts must use the `GATEWAY_COLORS` named vector — never hardcode per-chart:
+- Braintree:  `#1971C2` (blue)
+- PayPal HEP: `#00A878` (green)
+- PayPal HTW: `#E67700` (amber)
+- Stripe:     `#635BFF` (violet — Stripe brand color)
+
+## Date Filtering
+All tabs respond to the sidebar Date Range + Apply Filters button (`input$apply_filters`).
+Three QB reactives in server.R handle non-gateway data:
+- `filtered_pl_monthly()` — monthly_pl filtered by date (P&L tab KPIs + charts)
+- `filtered_txlist_monthly()` — txlist_monthly filtered by date (burn rate, expenses charts)
+- `filtered_cogs()` — cogs_tx rows filtered by date (COGS tab charts + table)
+All three use `bindEvent(input$apply_filters, ignoreNULL=FALSE, ignoreInit=FALSE)`.
 
 ## QuickBooks Data (Jan–Jun 19, 2026)
 - Gross Revenue: **$440,448.70**
